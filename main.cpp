@@ -7,7 +7,7 @@ using namespace std;
 
 int main()
 {
-    setlocale(LC_ALL, "ru");
+    setlocale(LC_ALL, "Russian");
 
     string incomeCategory;
     string incomeDate;
@@ -25,7 +25,7 @@ int main()
     string transactionDescription[SIZE];
     double transactionAmount[SIZE];
 
-    int count = 0;
+    long long count = 0;
 
     const int ROWS = 5;
     const int COLS = 4;
@@ -79,18 +79,20 @@ int main()
             cin >> choice;
         }
 
+        cin.ignore(10000, '\n');
+
         switch (choice)
         {
         case 1:
         {
             cout << "Введите категорию дохода: ";
-            cin >> incomeCategory;
+            getline(cin, incomeCategory);
 
             cout << "Введите дату дохода: ";
-            cin >> incomeDate;
+            getline(cin, incomeDate);
 
             cout << "Введите источник дохода: ";
-            cin >> incomeSource;
+            getline(cin, incomeSource);
 
             cout << "Введите сумму дохода: ";
             cin >> income;
@@ -109,7 +111,7 @@ int main()
                 transactionType[count] = "Доход";
                 transactionCategory[count] = incomeCategory;
                 transactionDate[count] = incomeDate;
-                transactionDescription[count] = incomeSource;
+                transactionDescription[count] = incomeSource + " (категория: " + incomeCategory + ", дата: " + incomeDate + ")";
                 transactionAmount[count] = income;
 
                 count++;
@@ -127,13 +129,13 @@ int main()
         case 2:
         {
             cout << "Введите категорию расхода: ";
-            cin >> expenseCategory;
+            getline(cin, expenseCategory);
 
             cout << "Введите дату расхода: ";
-            cin >> expenseDate;
+            getline(cin, expenseDate);
 
             cout << "Введите описание расхода: ";
-            cin >> expenseDescription;
+            getline(cin, expenseDescription);
 
             cout << "Введите сумму расхода: ";
             cin >> expense;
@@ -152,7 +154,7 @@ int main()
                 transactionType[count] = "Расход";
                 transactionCategory[count] = expenseCategory;
                 transactionDate[count] = expenseDate;
-                transactionDescription[count] = expenseDescription;
+                transactionDescription[count] = expenseDescription + " (категория: " + expenseCategory + ", дата: " + expenseDate + ")";
                 transactionAmount[count] = expense;
 
                 count++;
@@ -277,12 +279,14 @@ int main()
             string searchCategory;
             bool found = false;
 
-            cout << "Введите категорию для поиска: ";
-            cin >> searchCategory;
+            cout << "Введите часть названия, категории или описания: ";
+            getline(cin, searchCategory);
 
             for (int i = 0; i < count; i++)
             {
-                if (transactionCategory[i] == searchCategory)
+                if (transactionType[i].find(searchCategory) != string::npos ||
+                    transactionCategory[i].find(searchCategory) != string::npos ||
+                    transactionDescription[i].find(searchCategory) != string::npos)
                 {
                     cout << endl;
                     cout << "Транзакция №" << i + 1 << endl;
