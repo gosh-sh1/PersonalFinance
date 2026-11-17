@@ -10,42 +10,8 @@ const int SIZE = 100;
 const int ROWS = 5;
 const int COLS = 4;
 
-string transactionType[SIZE];
-string transactionCategory[SIZE];
-string transactionDate[SIZE];
-string transactionDescription[SIZE];
-double transactionAmount[SIZE];
-
-int count = 0;
-
-string categories[ROWS] = {
-    "Продукты",
-    "Транспорт",
-    "Жилье",
-    "Развлечения",
-    "Прочее"
-};
-
-string months[12] = {
-    "Январь",
-    "Февраль",
-    "Март",
-    "Апрель",
-    "Май",
-    "Июнь",
-    "Июль",
-    "Август",
-    "Сентябрь",
-    "Октябрь",
-    "Ноябрь",
-    "Декабрь"
-};
-
-double monthlyExpenses[ROWS][COLS] = {};
-bool matrixFilled = false;
-
 // Проверка ввода целого числа
-int readInt(string message)
+int readInt(const string& message)
 {
     int value;
 
@@ -67,7 +33,7 @@ int readInt(string message)
 }
 
 // Проверка ввода суммы
-double readDouble(string message)
+double readDouble(const string& message)
 {
     double value;
 
@@ -89,7 +55,13 @@ double readDouble(string message)
 }
 
 // Вывод одной транзакции
-void showRecord(int index)
+void showRecord(
+    int index,
+    const string (&transactionType)[SIZE],
+    const string (&transactionCategory)[SIZE],
+    const string (&transactionDate)[SIZE],
+    const string (&transactionDescription)[SIZE],
+    const double (&transactionAmount)[SIZE])
 {
     cout << endl;
     cout << "Транзакция №" << index + 1 << endl;
@@ -102,7 +74,14 @@ void showRecord(int index)
 }
 
 // Добавление дохода или расхода
-void addRecord(string type)
+void addRecord(
+    const string& type,
+    string (&transactionType)[SIZE],
+    string (&transactionCategory)[SIZE],
+    string (&transactionDate)[SIZE],
+    string (&transactionDescription)[SIZE],
+    double (&transactionAmount)[SIZE],
+    long long& count)
 {
     if (count >= SIZE)
     {
@@ -150,7 +129,13 @@ void addRecord(string type)
 }
 
 // Вывод всех транзакций
-void showAll()
+void showAll(
+    const string (&transactionType)[SIZE],
+    const string (&transactionCategory)[SIZE],
+    const string (&transactionDate)[SIZE],
+    const string (&transactionDescription)[SIZE],
+    const double (&transactionAmount)[SIZE],
+    const long long& count)
 {
     if (count == 0)
     {
@@ -163,12 +148,20 @@ void showAll()
 
     for (int i = 0; i < count; i++)
     {
-        showRecord(i);
+        showRecord(i, transactionType, transactionCategory,
+                   transactionDate, transactionDescription,
+                   transactionAmount);
     }
 }
 
 // Поиск транзакций
-void findRecord()
+void findRecord(
+    const string (&transactionType)[SIZE],
+    const string (&transactionCategory)[SIZE],
+    const string (&transactionDate)[SIZE],
+    const string (&transactionDescription)[SIZE],
+    const double (&transactionAmount)[SIZE],
+    const long long& count)
 {
     if (count == 0)
     {
@@ -188,7 +181,10 @@ void findRecord()
             transactionCategory[i].find(searchText) != string::npos ||
             transactionDescription[i].find(searchText) != string::npos)
         {
-            showRecord(i);
+            showRecord(i, transactionType, transactionCategory,
+                       transactionDate, transactionDescription,
+                       transactionAmount);
+
             found = true;
         }
     }
@@ -200,7 +196,13 @@ void findRecord()
 }
 
 // Сохранение транзакций в файл
-void saveToFile()
+void saveToFile(
+    const string (&transactionType)[SIZE],
+    const string (&transactionCategory)[SIZE],
+    const string (&transactionDate)[SIZE],
+    const string (&transactionDescription)[SIZE],
+    const double (&transactionAmount)[SIZE],
+    const long long& count)
 {
     ofstream file("transactions.txt");
 
@@ -227,7 +229,13 @@ void saveToFile()
 }
 
 // Загрузка транзакций из файла
-void loadFromFile()
+void loadFromFile(
+    string (&transactionType)[SIZE],
+    string (&transactionCategory)[SIZE],
+    string (&transactionDate)[SIZE],
+    string (&transactionDescription)[SIZE],
+    double (&transactionAmount)[SIZE],
+    long long& count)
 {
     ifstream file("transactions.txt");
 
@@ -290,7 +298,10 @@ void loadFromFile()
 }
 
 // Расчёт и вывод баланса
-void showBalance()
+void showBalance(
+    const string (&transactionType)[SIZE],
+    const double (&transactionAmount)[SIZE],
+    const long long& count)
 {
     double income = 0;
     double expense = 0;
@@ -355,7 +366,10 @@ void showPriceTable()
 }
 
 // Ввод матрицы расходов
-void inputMatrix()
+void inputMatrix(
+    double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12])
 {
     for (int i = 0; i < ROWS; i++)
     {
@@ -369,13 +383,14 @@ void inputMatrix()
         }
     }
 
-    matrixFilled = true;
-
     cout << "Матрица успешно заполнена." << endl;
 }
 
 // Вывод матрицы расходов
-void showMatrix()
+void showMatrix(
+    const double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12])
 {
     cout << endl;
     cout << setw(18) << "Категория";
@@ -402,7 +417,10 @@ void showMatrix()
 }
 
 // Поиск максимального и минимального расходов
-void findMatrixMinMax()
+void findMatrixMinMax(
+    const double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12])
 {
     double maximum = monthlyExpenses[0][0];
     double minimum = monthlyExpenses[0][0];
@@ -443,7 +461,10 @@ void findMatrixMinMax()
 }
 
 // Суммы по категориям и месяцам
-void showMatrixSums()
+void showMatrixSums(
+    const double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12])
 {
     cout << endl;
     cout << "===== СУММЫ ПО КАТЕГОРИЯМ =====" << endl;
@@ -479,7 +500,10 @@ void showMatrixSums()
 }
 
 // Изменение элемента матрицы
-void editMatrixElement()
+void editMatrixElement(
+    double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12])
 {
     cout << "Категории:" << endl;
 
@@ -517,7 +541,11 @@ void editMatrixElement()
 }
 
 // Меню матрицы расходов
-void matrixMenu()
+void matrixMenu(
+    double (&monthlyExpenses)[ROWS][COLS],
+    const string (&categories)[ROWS],
+    const string (&months)[12],
+    bool& matrixFilled)
 {
     int matrixChoice;
 
@@ -548,23 +576,24 @@ void matrixMenu()
         switch (matrixChoice)
         {
             case 1:
-                inputMatrix();
+                inputMatrix(monthlyExpenses, categories, months);
+                matrixFilled = true;
                 break;
 
             case 2:
-                showMatrix();
+                showMatrix(monthlyExpenses, categories, months);
                 break;
 
             case 3:
-                findMatrixMinMax();
+                findMatrixMinMax(monthlyExpenses, categories, months);
                 break;
 
             case 4:
-                showMatrixSums();
+                showMatrixSums(monthlyExpenses, categories, months);
                 break;
 
             case 5:
-                editMatrixElement();
+                editMatrixElement(monthlyExpenses, categories, months);
                 break;
 
             default:
@@ -572,6 +601,68 @@ void matrixMenu()
                 break;
         }
     }
+}
+
+// Обмен двух транзакций
+void swap(
+    int first,
+    int second,
+    string (&transactionType)[SIZE],
+    string (&transactionCategory)[SIZE],
+    string (&transactionDate)[SIZE],
+    string (&transactionDescription)[SIZE],
+    double (&transactionAmount)[SIZE])
+{
+    string tempType = transactionType[first];
+    transactionType[first] = transactionType[second];
+    transactionType[second] = tempType;
+
+    string tempCategory = transactionCategory[first];
+    transactionCategory[first] = transactionCategory[second];
+    transactionCategory[second] = tempCategory;
+
+    string tempDate = transactionDate[first];
+    transactionDate[first] = transactionDate[second];
+    transactionDate[second] = tempDate;
+
+    string tempDescription = transactionDescription[first];
+    transactionDescription[first] = transactionDescription[second];
+    transactionDescription[second] = tempDescription;
+
+    double tempAmount = transactionAmount[first];
+    transactionAmount[first] = transactionAmount[second];
+    transactionAmount[second] = tempAmount;
+}
+
+// Сортировка транзакций по сумме
+void sortRecords(
+    string (&transactionType)[SIZE],
+    string (&transactionCategory)[SIZE],
+    string (&transactionDate)[SIZE],
+    string (&transactionDescription)[SIZE],
+    double (&transactionAmount)[SIZE],
+    const long long& count)
+{
+    if (count == 0)
+    {
+        cout << "Нет транзакций для сортировки." << endl;
+        return;
+    }
+
+    for (int i = 0; i < count - 1; i++)
+    {
+        for (int j = 0; j < count - i - 1; j++)
+        {
+            if (transactionAmount[j] > transactionAmount[j + 1])
+            {
+                swap(j, j + 1, transactionType,
+                     transactionCategory, transactionDate,
+                     transactionDescription, transactionAmount);
+            }
+        }
+    }
+
+    cout << "Транзакции отсортированы по сумме." << endl;
 }
 
 // Вывод главного меню
@@ -588,6 +679,7 @@ void showMenu()
     cout << "7 - Работа с матрицей расходов" << endl;
     cout << "8 - Сохранить транзакции в файл" << endl;
     cout << "9 - Загрузить транзакции из файла" << endl;
+    cout << "10 - Сортировать транзакции по сумме" << endl;
     cout << "0 - Выход" << endl;
 }
 
@@ -595,6 +687,40 @@ void showMenu()
 int main()
 {
     setlocale(LC_ALL, "Russian");
+
+    string transactionType[SIZE];
+    string transactionCategory[SIZE];
+    string transactionDate[SIZE];
+    string transactionDescription[SIZE];
+    double transactionAmount[SIZE];
+
+    long long count = 0;
+
+    string categories[ROWS] = {
+        "Продукты",
+        "Транспорт",
+        "Жилье",
+        "Развлечения",
+        "Прочее"
+    };
+
+    string months[12] = {
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь"
+    };
+
+    double monthlyExpenses[ROWS][COLS] = {};
+    bool matrixFilled = false;
 
     int choice;
 
@@ -607,15 +733,19 @@ int main()
         switch (choice)
         {
             case 1:
-                addRecord("Доход");
+                addRecord("Доход", transactionType,
+                          transactionCategory, transactionDate,
+                          transactionDescription, transactionAmount, count);
                 break;
 
             case 2:
-                addRecord("Расход");
+                addRecord("Расход", transactionType,
+                          transactionCategory, transactionDate,
+                          transactionDescription, transactionAmount, count);
                 break;
 
             case 3:
-                showBalance();
+                showBalance(transactionType, transactionAmount, count);
                 break;
 
             case 4:
@@ -623,23 +753,38 @@ int main()
                 break;
 
             case 5:
-                showAll();
+                showAll(transactionType, transactionCategory,
+                        transactionDate, transactionDescription,
+                        transactionAmount, count);
                 break;
 
             case 6:
-                findRecord();
+                findRecord(transactionType, transactionCategory,
+                           transactionDate, transactionDescription,
+                           transactionAmount, count);
                 break;
 
             case 7:
-                matrixMenu();
+                matrixMenu(monthlyExpenses, categories,
+                           months, matrixFilled);
                 break;
 
             case 8:
-                saveToFile();
+                saveToFile(transactionType, transactionCategory,
+                           transactionDate, transactionDescription,
+                           transactionAmount, count);
                 break;
 
             case 9:
-                loadFromFile();
+                loadFromFile(transactionType, transactionCategory,
+                             transactionDate, transactionDescription,
+                             transactionAmount, count);
+                break;
+
+            case 10:
+                sortRecords(transactionType, transactionCategory,
+                            transactionDate, transactionDescription,
+                            transactionAmount, count);
                 break;
 
             case 0:
