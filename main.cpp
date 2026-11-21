@@ -13,45 +13,41 @@ const int COLS = 4;
 // Проверка ввода целого числа
 int readInt(const string& message)
 {
-    int value;
+    int number;
 
     cout << message;
-    cin >> value;
+    cin >> number;
 
     while (cin.fail())
     {
         cin.clear();
         cin.ignore(10000, '\n');
 
-        cout << "Некорректный ввод. Повторите: ";
-        cin >> value;
+        cout << "Ошибка! Введите целое число: ";
+        cin >> number;
     }
 
-    cin.ignore(10000, '\n');
-
-    return value;
+    return number;
 }
 
-// Проверка ввода суммы
+// Проверка ввода вещественного числа
 double readDouble(const string& message)
 {
-    double value;
+    double number;
 
     cout << message;
-    cin >> value;
+    cin >> number;
 
-    while (cin.fail() || value < 0)
+    while (cin.fail())
     {
         cin.clear();
         cin.ignore(10000, '\n');
 
-        cout << "Введите корректную сумму: ";
-        cin >> value;
+        cout << "Ошибка! Введите число: ";
+        cin >> number;
     }
 
-    cin.ignore(10000, '\n');
-
-    return value;
+    return number;
 }
 
 // Вывод одной транзакции
@@ -63,8 +59,7 @@ void showRecord(
     const string (&transactionDescription)[SIZE],
     const double (&transactionAmount)[SIZE])
 {
-    cout << endl;
-    cout << "Транзакция №" << index + 1 << endl;
+    cout << "\nТранзакция №" << index + 1 << endl;
     cout << "Тип: " << transactionType[index] << endl;
     cout << "Категория: " << transactionCategory[index] << endl;
     cout << "Дата: " << transactionDate[index] << endl;
@@ -73,7 +68,7 @@ void showRecord(
          << transactionAmount[index] << endl;
 }
 
-// Добавление дохода или расхода
+// Добавление транзакции
 void addRecord(
     const string& type,
     string (&transactionType)[SIZE],
@@ -85,114 +80,131 @@ void addRecord(
 {
     if (count >= SIZE)
     {
-        cout << "Массив транзакций заполнен!" << endl;
+        cout << "Достигнуто максимальное количество транзакций!" << endl;
         return;
     }
 
-    string category;
-    string date;
-    string description;
-    double amount;
+    transactionType[count] = type;
+
+    cin.ignore(10000, '\n');
 
     cout << "Введите категорию: ";
-    getline(cin, category);
+    getline(cin, transactionCategory[count]);
 
     cout << "Введите дату: ";
-    getline(cin, date);
+    getline(cin, transactionDate[count]);
 
-    if (type == "Доход")
+    cout << "Введите описание: ";
+    getline(cin, transactionDescription[count]);
+
+    transactionAmount[count] = readDouble("Введите сумму: ");
+
+    if (transactionAmount[count] < 0)
     {
-        cout << "Введите источник дохода: ";
+        cout << "Сумма не может быть отрицательной!" << endl;
+        return;
     }
-    else
-    {
-        cout << "Введите описание расхода: ";
-    }
-
-    getline(cin, description);
-
-    amount = readDouble("Введите сумму: ");
-
-    transactionType[count] = type;
-    transactionCategory[count] = category;
-    transactionDate[count] = date;
-
-    transactionDescription[count] =
-        description + " (категория: " + category +
-        ", дата: " + date + ")";
-
-    transactionAmount[count] = amount;
 
     count++;
 
-    cout << type << " успешно добавлен." << endl;
+    cout << "Транзакция успешно добавлена!" << endl;
 }
 
-// Вывод всех транзакций
+// Вывод всех транзакций с использованием арифметики указателей
 void showAll(
     const string (&transactionType)[SIZE],
     const string (&transactionCategory)[SIZE],
     const string (&transactionDate)[SIZE],
     const string (&transactionDescription)[SIZE],
     const double (&transactionAmount)[SIZE],
-    const long long& count)
+    long long count)
 {
     if (count == 0)
     {
-        cout << "Транзакций пока нет." << endl;
+        cout << "Список транзакций пуст!" << endl;
         return;
     }
 
-    cout << endl;
-    cout << "===== ВСЕ ТРАНЗАКЦИИ =====" << endl;
+    const string* typePtr = transactionType;
+    const string* categoryPtr = transactionCategory;
+    const string* datePtr = transactionDate;
+    const string* descriptionPtr = transactionDescription;
+    const double* amountPtr = transactionAmount;
 
     for (int i = 0; i < count; i++)
     {
-        showRecord(i, transactionType, transactionCategory,
-                   transactionDate, transactionDescription,
-                   transactionAmount);
+        cout << "\nТранзакция №" << i + 1 << endl;
+        cout << "Тип: " << *typePtr << endl;
+        cout << "Категория: " << *categoryPtr << endl;
+        cout << "Дата: " << *datePtr << endl;
+        cout << "Описание: " << *descriptionPtr << endl;
+        cout << "Сумма: " << fixed << setprecision(2)
+             << *amountPtr << endl;
+
+        typePtr++;
+        categoryPtr++;
+        datePtr++;
+        descriptionPtr++;
+        amountPtr++;
     }
 }
 
-// Поиск транзакций
-void findRecord(
-    const string (&transactionType)[SIZE],
-    const string (&transactionCategory)[SIZE],
-    const string (&transactionDate)[SIZE],
-    const string (&transactionDescription)[SIZE],
-    const double (&transactionAmount)[SIZE],
-    const long long& count)
+// Поиск транзакции с возвратом указателя на найденную сумму
+double* findRecord(
+    string (&transactionType)[SIZE],
+    string (&transactionCategory)[SIZE],
+    string (&transactionDate)[SIZE],
+    string (&transactionDescription)[SIZE],
+    double (&transactionAmount)[SIZE],
+    long long count)
 {
     if (count == 0)
     {
-        cout << "Транзакций для поиска нет." << endl;
-        return;
+        cout << "Список транзакций пуст!" << endl;
+        return nullptr;
     }
 
     string searchText;
-    bool found = false;
 
-    cout << "Введите часть названия, категории или описания: ";
+    cin.ignore(10000, '\n');
+
+    cout << "Введите текст для поиска: ";
     getline(cin, searchText);
+
+    string* typePtr = transactionType;
+    string* categoryPtr = transactionCategory;
+    string* datePtr = transactionDate;
+    string* descriptionPtr = transactionDescription;
+    double* amountPtr = transactionAmount;
 
     for (int i = 0; i < count; i++)
     {
-        if (transactionType[i].find(searchText) != string::npos ||
-            transactionCategory[i].find(searchText) != string::npos ||
-            transactionDescription[i].find(searchText) != string::npos)
+        if (typePtr->find(searchText) != string::npos ||
+            categoryPtr->find(searchText) != string::npos ||
+            datePtr->find(searchText) != string::npos ||
+            descriptionPtr->find(searchText) != string::npos)
         {
-            showRecord(i, transactionType, transactionCategory,
-                       transactionDate, transactionDescription,
-                       transactionAmount);
+            cout << "\nНайдена транзакция!" << endl;
+            cout << "Тип: " << *typePtr << endl;
+            cout << "Категория: " << *categoryPtr << endl;
+            cout << "Дата: " << *datePtr << endl;
+            cout << "Описание: " << *descriptionPtr << endl;
+            cout << "Сумма: " << fixed << setprecision(2)
+                 << *amountPtr << endl;
 
-            found = true;
+            return amountPtr;
         }
+
+        typePtr++;
+        categoryPtr++;
+        datePtr++;
+        descriptionPtr++;
+        amountPtr++;
     }
 
-    if (!found)
-    {
-        cout << "Транзакции с таким запросом не найдены." << endl;
-    }
+    cout << "Транзакция не найдена!" << endl;
+
+    return nullptr;
 }
 
 // Сохранение транзакций в файл
@@ -202,13 +214,13 @@ void saveToFile(
     const string (&transactionDate)[SIZE],
     const string (&transactionDescription)[SIZE],
     const double (&transactionAmount)[SIZE],
-    const long long& count)
+    long long count)
 {
     ofstream file("transactions.txt");
 
     if (!file.is_open())
     {
-        cout << "Не удалось открыть файл для сохранения." << endl;
+        cout << "Ошибка открытия файла!" << endl;
         return;
     }
 
@@ -225,7 +237,7 @@ void saveToFile(
 
     file.close();
 
-    cout << "Транзакции успешно сохранены в файл." << endl;
+    cout << "Данные успешно сохранены!" << endl;
 }
 
 // Загрузка транзакций из файла
@@ -241,67 +253,52 @@ void loadFromFile(
 
     if (!file.is_open())
     {
-        cout << "Файл transactions.txt не найден." << endl;
+        cout << "Файл не найден!" << endl;
         return;
     }
 
-    int loadedCount;
+    long long loadedCount;
 
     file >> loadedCount;
     file.ignore(10000, '\n');
 
     if (file.fail() || loadedCount < 0 || loadedCount > SIZE)
     {
-        cout << "Некорректные данные в файле." << endl;
-        file.close();
+        cout << "Ошибка чтения файла!" << endl;
         return;
     }
 
-    string newType[SIZE];
-    string newCategory[SIZE];
-    string newDate[SIZE];
-    string newDescription[SIZE];
-    double newAmount[SIZE];
+    count = 0;
 
     for (int i = 0; i < loadedCount; i++)
     {
-        getline(file, newType[i]);
-        getline(file, newCategory[i]);
-        getline(file, newDate[i]);
-        getline(file, newDescription[i]);
+        getline(file, transactionType[i]);
+        getline(file, transactionCategory[i]);
+        getline(file, transactionDate[i]);
+        getline(file, transactionDescription[i]);
 
-        file >> newAmount[i];
+        file >> transactionAmount[i];
         file.ignore(10000, '\n');
 
         if (file.fail())
         {
-            cout << "Ошибка чтения данных из файла." << endl;
-            file.close();
-            return;
+            cout << "Ошибка чтения данных!" << endl;
+            break;
         }
-    }
 
-    for (int i = 0; i < loadedCount; i++)
-    {
-        transactionType[i] = newType[i];
-        transactionCategory[i] = newCategory[i];
-        transactionDate[i] = newDate[i];
-        transactionDescription[i] = newDescription[i];
-        transactionAmount[i] = newAmount[i];
+        count++;
     }
-
-    count = loadedCount;
 
     file.close();
 
-    cout << "Транзакции успешно загружены из файла." << endl;
+    cout << "Загружено транзакций: " << count << endl;
 }
 
-// Расчёт и вывод баланса
+// Вывод баланса
 void showBalance(
     const string (&transactionType)[SIZE],
     const double (&transactionAmount)[SIZE],
-    const long long& count)
+    long long count)
 {
     double income = 0;
     double expense = 0;
@@ -318,50 +315,42 @@ void showBalance(
         }
     }
 
-    double balance = income - expense;
+    cout << "\nОбщая сумма доходов: "
+         << fixed << setprecision(2) << income << endl;
 
-    cout << endl;
-    cout << "===== ФИНАНСОВАЯ СТАТИСТИКА =====" << endl;
-    cout << "Доходы: " << fixed << setprecision(2) << income << endl;
-    cout << "Расходы: " << expense << endl;
-    cout << "Текущий баланс: " << balance << endl;
+    cout << "Общая сумма расходов: " << expense << endl;
 
-    if (balance > 0)
-    {
-        cout << "Доходы превышают расходы." << endl;
-    }
-    else if (balance < 0)
-    {
-        cout << "Расходы превышают доходы." << endl;
-    }
-    else
-    {
-        cout << "Доходы равны расходам." << endl;
-    }
+    cout << "Текущий баланс: " << income - expense << endl;
 }
 
 // Таблица стоимости
 void showPriceTable()
 {
-    double price = readDouble("Введите стоимость одной единицы: ");
-    int maxQuantity = readInt("Введите максимальное количество: ");
+    string products[] = {
+        "Продукты",
+        "Транспорт",
+        "Жилье",
+        "Развлечения",
+        "Прочее"
+    };
 
-    while (maxQuantity < 1)
+    double prices[] = {
+        5000,
+        2000,
+        15000,
+        3000,
+        1000
+    };
+
+    cout << "\nТаблица примерных расходов" << endl;
+    cout << "-----------------------------------" << endl;
+    cout << left << setw(20) << "Категория"
+         << "Сумма" << endl;
+
+    for (int i = 0; i < 5; i++)
     {
-        maxQuantity = readInt("Введите положительное количество: ");
-    }
-
-    cout << endl;
-    cout << "===== ТАБЛИЦА СТОИМОСТИ =====" << endl;
-
-    cout << setw(15) << "Количество"
-         << setw(15) << "Стоимость" << endl;
-
-    for (int i = 1; i <= maxQuantity; i++)
-    {
-        cout << setw(15) << i
-             << setw(15) << fixed << setprecision(2)
-             << price * i << endl;
+        cout << left << setw(20) << products[i]
+             << fixed << setprecision(2) << prices[i] << endl;
     }
 }
 
@@ -371,44 +360,47 @@ void inputMatrix(
     const string (&categories)[ROWS],
     const string (&months)[12])
 {
+    cout << "\nВведите расходы по категориям за 4 месяца." << endl;
+
     for (int i = 0; i < ROWS; i++)
     {
-        cout << endl;
-        cout << "Категория: " << categories[i] << endl;
+        cout << "\nКатегория: " << categories[i] << endl;
 
         for (int j = 0; j < COLS; j++)
         {
-            monthlyExpenses[i][j] =
-                readDouble("Расходы за месяц " + months[j] + ": ");
+            monthlyExpenses[i][j] = readDouble(
+                "Введите расходы за " + months[j] + ": "
+            );
         }
     }
 
-    cout << "Матрица успешно заполнена." << endl;
+    cout << "Матрица расходов заполнена!" << endl;
 }
 
-// Вывод матрицы расходов
+// Вывод матрицы
 void showMatrix(
     const double (&monthlyExpenses)[ROWS][COLS],
     const string (&categories)[ROWS],
     const string (&months)[12])
 {
-    cout << endl;
-    cout << setw(18) << "Категория";
+    cout << "\nМатрица расходов" << endl;
+
+    cout << left << setw(20) << "Категория";
 
     for (int j = 0; j < COLS; j++)
     {
-        cout << setw(12) << months[j];
+        cout << setw(15) << months[j];
     }
 
     cout << endl;
 
     for (int i = 0; i < ROWS; i++)
     {
-        cout << setw(18) << categories[i];
+        cout << left << setw(20) << categories[i];
 
         for (int j = 0; j < COLS; j++)
         {
-            cout << setw(12) << fixed << setprecision(2)
+            cout << setw(15) << fixed << setprecision(2)
                  << monthlyExpenses[i][j];
         }
 
@@ -416,191 +408,183 @@ void showMatrix(
     }
 }
 
-// Поиск максимального и минимального расходов
+// Поиск минимального и максимального элементов матрицы
 void findMatrixMinMax(
     const double (&monthlyExpenses)[ROWS][COLS],
     const string (&categories)[ROWS],
     const string (&months)[12])
 {
-    double maximum = monthlyExpenses[0][0];
-    double minimum = monthlyExpenses[0][0];
+    double minValue = monthlyExpenses[0][0];
+    double maxValue = monthlyExpenses[0][0];
 
-    int maxRow = 0;
-    int maxCol = 0;
     int minRow = 0;
     int minCol = 0;
+    int maxRow = 0;
+    int maxCol = 0;
 
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLS; j++)
         {
-            if (monthlyExpenses[i][j] > maximum)
+            if (monthlyExpenses[i][j] < minValue)
             {
-                maximum = monthlyExpenses[i][j];
-                maxRow = i;
-                maxCol = j;
-            }
-
-            if (monthlyExpenses[i][j] < minimum)
-            {
-                minimum = monthlyExpenses[i][j];
+                minValue = monthlyExpenses[i][j];
                 minRow = i;
                 minCol = j;
+            }
+
+            if (monthlyExpenses[i][j] > maxValue)
+            {
+                maxValue = monthlyExpenses[i][j];
+                maxRow = i;
+                maxCol = j;
             }
         }
     }
 
-    cout << "Максимальный расход: " << maximum << endl;
-    cout << "Категория: " << categories[maxRow] << endl;
-    cout << "Месяц: " << months[maxCol] << endl;
-
-    cout << endl;
-    cout << "Минимальный расход: " << minimum << endl;
+    cout << "\nМинимальный расход: " << minValue << endl;
     cout << "Категория: " << categories[minRow] << endl;
     cout << "Месяц: " << months[minCol] << endl;
+
+    cout << "\nМаксимальный расход: " << maxValue << endl;
+    cout << "Категория: " << categories[maxRow] << endl;
+    cout << "Месяц: " << months[maxCol] << endl;
 }
 
-// Суммы по категориям и месяцам
+// Суммы расходов по строкам и столбцам
 void showMatrixSums(
     const double (&monthlyExpenses)[ROWS][COLS],
     const string (&categories)[ROWS],
     const string (&months)[12])
 {
-    cout << endl;
-    cout << "===== СУММЫ ПО КАТЕГОРИЯМ =====" << endl;
+    cout << "\nСуммы расходов по категориям:" << endl;
 
     for (int i = 0; i < ROWS; i++)
     {
-        double rowSum = 0;
+        double sum = 0;
 
         for (int j = 0; j < COLS; j++)
         {
-            rowSum += monthlyExpenses[i][j];
+            sum += monthlyExpenses[i][j];
         }
 
-        cout << categories[i] << ": "
-             << fixed << setprecision(2) << rowSum << endl;
+        cout << categories[i] << ": " << sum << endl;
     }
 
-    cout << endl;
-    cout << "===== СУММЫ ПО МЕСЯЦАМ =====" << endl;
+    cout << "\nСуммы расходов по месяцам:" << endl;
 
     for (int j = 0; j < COLS; j++)
     {
-        double colSum = 0;
+        double sum = 0;
 
         for (int i = 0; i < ROWS; i++)
         {
-            colSum += monthlyExpenses[i][j];
+            sum += monthlyExpenses[i][j];
         }
 
-        cout << months[j] << ": "
-             << fixed << setprecision(2) << colSum << endl;
+        cout << months[j] << ": " << sum << endl;
     }
 }
 
-// Изменение элемента матрицы
-void editMatrixElement(
-    double (&monthlyExpenses)[ROWS][COLS],
-    const string (&categories)[ROWS],
-    const string (&months)[12])
+// Редактирование элемента матрицы
+void editMatrixElement(double (&monthlyExpenses)[ROWS][COLS])
 {
-    cout << "Категории:" << endl;
+    int row = readInt("Введите номер строки (1-5): ");
+    int col = readInt("Введите номер столбца (1-4): ");
 
-    for (int i = 0; i < ROWS; i++)
+    if (row < 1 || row > ROWS || col < 1 || col > COLS)
     {
-        cout << i + 1 << " - " << categories[i] << endl;
+        cout << "Неверные координаты!" << endl;
+        return;
     }
 
-    int row = readInt("Введите номер категории: ");
+    monthlyExpenses[row - 1][col - 1] =
+        readDouble("Введите новое значение: ");
 
-    while (row < 1 || row > ROWS)
-    {
-        row = readInt("Введите номер от 1 до 5: ");
-    }
-
-    cout << "Месяцы:" << endl;
-
-    for (int j = 0; j < COLS; j++)
-    {
-        cout << j + 1 << " - " << months[j] << endl;
-    }
-
-    int col = readInt("Введите номер месяца: ");
-
-    while (col < 1 || col > COLS)
-    {
-        col = readInt("Введите номер от 1 до 4: ");
-    }
-
-    double newValue = readDouble("Введите новое значение расходов: ");
-
-    monthlyExpenses[row - 1][col - 1] = newValue;
-
-    cout << "Элемент матрицы изменён." << endl;
+    cout << "Элемент успешно изменен!" << endl;
 }
 
-// Меню матрицы расходов
+// Меню работы с матрицей
 void matrixMenu(
     double (&monthlyExpenses)[ROWS][COLS],
     const string (&categories)[ROWS],
     const string (&months)[12],
     bool& matrixFilled)
 {
-    int matrixChoice;
+    int choice;
 
-    while (true)
+    do
     {
-        cout << endl;
-        cout << "===== МАТРИЦА РАСХОДОВ =====" << endl;
-        cout << "1 - Ввести данные матрицы" << endl;
-        cout << "2 - Вывести матрицу" << endl;
-        cout << "3 - Найти максимум и минимум" << endl;
-        cout << "4 - Суммы по категориям и месяцам" << endl;
-        cout << "5 - Изменить элемент матрицы" << endl;
-        cout << "0 - Вернуться в главное меню" << endl;
+        cout << "\n===== МЕНЮ МАТРИЦЫ =====" << endl;
+        cout << "1. Заполнить матрицу" << endl;
+        cout << "2. Вывести матрицу" << endl;
+        cout << "3. Найти минимум и максимум" << endl;
+        cout << "4. Суммы по строкам и столбцам" << endl;
+        cout << "5. Изменить элемент" << endl;
+        cout << "0. Назад" << endl;
 
-        matrixChoice = readInt("Выберите действие: ");
+        choice = readInt("Выберите действие: ");
 
-        if (matrixChoice == 0)
+        switch (choice)
         {
+        case 1:
+            inputMatrix(monthlyExpenses, categories, months);
+            matrixFilled = true;
             break;
-        }
 
-        if (!matrixFilled && matrixChoice >= 2 && matrixChoice <= 5)
-        {
-            cout << "Сначала необходимо заполнить матрицу." << endl;
-            continue;
-        }
-
-        switch (matrixChoice)
-        {
-            case 1:
-                inputMatrix(monthlyExpenses, categories, months);
-                matrixFilled = true;
-                break;
-
-            case 2:
+        case 2:
+            if (matrixFilled)
+            {
                 showMatrix(monthlyExpenses, categories, months);
-                break;
+            }
+            else
+            {
+                cout << "Сначала заполните матрицу!" << endl;
+            }
+            break;
 
-            case 3:
+        case 3:
+            if (matrixFilled)
+            {
                 findMatrixMinMax(monthlyExpenses, categories, months);
-                break;
+            }
+            else
+            {
+                cout << "Сначала заполните матрицу!" << endl;
+            }
+            break;
 
-            case 4:
+        case 4:
+            if (matrixFilled)
+            {
                 showMatrixSums(monthlyExpenses, categories, months);
-                break;
+            }
+            else
+            {
+                cout << "Сначала заполните матрицу!" << endl;
+            }
+            break;
 
-            case 5:
-                editMatrixElement(monthlyExpenses, categories, months);
-                break;
+        case 5:
+            if (matrixFilled)
+            {
+                editMatrixElement(monthlyExpenses);
+            }
+            else
+            {
+                cout << "Сначала заполните матрицу!" << endl;
+            }
+            break;
 
-            default:
-                cout << "Ошибка: такого пункта меню не существует." << endl;
-                break;
+        case 0:
+            cout << "Возврат в главное меню." << endl;
+            break;
+
+        default:
+            cout << "Неверный пункт меню!" << endl;
         }
-    }
+
+    } while (choice != 0);
 }
 
 // Обмен двух транзакций
@@ -613,23 +597,26 @@ void swap(
     string (&transactionDescription)[SIZE],
     double (&transactionAmount)[SIZE])
 {
-    string tempType = transactionType[first];
+    string tempString;
+    double tempAmount;
+
+    tempString = transactionType[first];
     transactionType[first] = transactionType[second];
-    transactionType[second] = tempType;
+    transactionType[second] = tempString;
 
-    string tempCategory = transactionCategory[first];
+    tempString = transactionCategory[first];
     transactionCategory[first] = transactionCategory[second];
-    transactionCategory[second] = tempCategory;
+    transactionCategory[second] = tempString;
 
-    string tempDate = transactionDate[first];
+    tempString = transactionDate[first];
     transactionDate[first] = transactionDate[second];
-    transactionDate[second] = tempDate;
+    transactionDate[second] = tempString;
 
-    string tempDescription = transactionDescription[first];
+    tempString = transactionDescription[first];
     transactionDescription[first] = transactionDescription[second];
-    transactionDescription[second] = tempDescription;
+    transactionDescription[second] = tempString;
 
-    double tempAmount = transactionAmount[first];
+    tempAmount = transactionAmount[first];
     transactionAmount[first] = transactionAmount[second];
     transactionAmount[second] = tempAmount;
 }
@@ -641,46 +628,46 @@ void sortRecords(
     string (&transactionDate)[SIZE],
     string (&transactionDescription)[SIZE],
     double (&transactionAmount)[SIZE],
-    const long long& count)
+    long long count)
 {
-    if (count == 0)
-    {
-        cout << "Нет транзакций для сортировки." << endl;
-        return;
-    }
-
     for (int i = 0; i < count - 1; i++)
     {
         for (int j = 0; j < count - i - 1; j++)
         {
             if (transactionAmount[j] > transactionAmount[j + 1])
             {
-                swap(j, j + 1, transactionType,
-                     transactionCategory, transactionDate,
-                     transactionDescription, transactionAmount);
+                swap(
+                    j,
+                    j + 1,
+                    transactionType,
+                    transactionCategory,
+                    transactionDate,
+                    transactionDescription,
+                    transactionAmount
+                );
             }
         }
     }
 
-    cout << "Транзакции отсортированы по сумме." << endl;
+    cout << "Транзакции отсортированы по сумме!" << endl;
 }
 
-// Вывод главного меню
+// Главное меню
 void showMenu()
 {
-    cout << endl;
-    cout << "===== МЕНЮ =====" << endl;
-    cout << "1 - Добавить доход" << endl;
-    cout << "2 - Добавить расход" << endl;
-    cout << "3 - Показать текущий баланс" << endl;
-    cout << "4 - Таблица стоимости" << endl;
-    cout << "5 - Показать все транзакции" << endl;
-    cout << "6 - Поиск транзакций по категории" << endl;
-    cout << "7 - Работа с матрицей расходов" << endl;
-    cout << "8 - Сохранить транзакции в файл" << endl;
-    cout << "9 - Загрузить транзакции из файла" << endl;
-    cout << "10 - Сортировать транзакции по сумме" << endl;
-    cout << "0 - Выход" << endl;
+    cout << "\n========== PERSONAL FINANCE ==========" << endl;
+    cout << "1. Добавить доход" << endl;
+    cout << "2. Добавить расход" << endl;
+    cout << "3. Показать баланс" << endl;
+    cout << "4. Таблица стоимости" << endl;
+    cout << "5. Показать все транзакции" << endl;
+    cout << "6. Найти транзакцию" << endl;
+    cout << "7. Работа с матрицей расходов" << endl;
+    cout << "8. Сохранить данные в файл" << endl;
+    cout << "9. Загрузить данные из файла" << endl;
+    cout << "10. Сортировать транзакции" << endl;
+    cout << "0. Выход" << endl;
+    cout << "======================================" << endl;
 }
 
 // Главная функция
@@ -722,80 +709,157 @@ int main()
     double monthlyExpenses[ROWS][COLS] = {};
     bool matrixFilled = false;
 
+    // Указатели на основные массивы и переменные
+    string (*typePtr)[SIZE] = &transactionType;
+    string (*categoryPtr)[SIZE] = &transactionCategory;
+    string (*datePtr)[SIZE] = &transactionDate;
+    string (*descriptionPtr)[SIZE] = &transactionDescription;
+    double (*amountPtr)[SIZE] = &transactionAmount;
+
+    long long* countPtr = &count;
+
+    double (*matrixPtr)[ROWS][COLS] = &monthlyExpenses;
+    bool* matrixFilledPtr = &matrixFilled;
+
     int choice;
 
-    while (true)
+    do
     {
         showMenu();
 
-        choice = readInt("Выберите действие: ");
+        choice = readInt("Выберите пункт меню: ");
 
         switch (choice)
         {
-            case 1:
-                addRecord("Доход", transactionType,
-                          transactionCategory, transactionDate,
-                          transactionDescription, transactionAmount, count);
-                break;
+        case 1:
+            addRecord(
+                "Доход",
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
 
-            case 2:
-                addRecord("Расход", transactionType,
-                          transactionCategory, transactionDate,
-                          transactionDescription, transactionAmount, count);
-                break;
+        case 2:
+            addRecord(
+                "Расход",
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
 
-            case 3:
-                showBalance(transactionType, transactionAmount, count);
-                break;
+        case 3:
+            showBalance(*typePtr, *amountPtr, *countPtr);
+            break;
 
-            case 4:
-                showPriceTable();
-                break;
+        case 4:
+            showPriceTable();
+            break;
 
-            case 5:
-                showAll(transactionType, transactionCategory,
-                        transactionDate, transactionDescription,
-                        transactionAmount, count);
-                break;
+        case 5:
+            showAll(
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
 
-            case 6:
-                findRecord(transactionType, transactionCategory,
-                           transactionDate, transactionDescription,
-                           transactionAmount, count);
-                break;
+        case 6:
+        {
+            double* foundAmount = findRecord(
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
 
-            case 7:
-                matrixMenu(monthlyExpenses, categories,
-                           months, matrixFilled);
-                break;
+            if (foundAmount != nullptr)
+            {
+                // Разыменование указателя
+                cout << "\nНайденная сумма через указатель: "
+                     << *foundAmount << endl;
 
-            case 8:
-                saveToFile(transactionType, transactionCategory,
-                           transactionDate, transactionDescription,
-                           transactionAmount, count);
-                break;
+                // Получение индекса через разность указателей
+                int index = foundAmount - *amountPtr;
 
-            case 9:
-                loadFromFile(transactionType, transactionCategory,
-                             transactionDate, transactionDescription,
-                             transactionAmount, count);
-                break;
+                cout << "Номер элемента массива: " << index + 1 << endl;
 
-            case 10:
-                sortRecords(transactionType, transactionCategory,
-                            transactionDate, transactionDescription,
-                            transactionAmount, count);
-                break;
+                showRecord(
+                    index,
+                    *typePtr,
+                    *categoryPtr,
+                    *datePtr,
+                    *descriptionPtr,
+                    *amountPtr
+                );
+            }
 
-            case 0:
-                cout << "Выход из программы." << endl;
-                return 0;
-
-            default:
-                cout << "Ошибка: такого пункта меню не существует." << endl;
-                break;
+            break;
         }
-    }
+
+        case 7:
+            matrixMenu(
+                *matrixPtr,
+                categories,
+                months,
+                *matrixFilledPtr
+            );
+            break;
+
+        case 8:
+            saveToFile(
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
+
+        case 9:
+            loadFromFile(
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
+
+        case 10:
+            sortRecords(
+                *typePtr,
+                *categoryPtr,
+                *datePtr,
+                *descriptionPtr,
+                *amountPtr,
+                *countPtr
+            );
+            break;
+
+        case 0:
+            cout << "Программа завершена." << endl;
+            break;
+
+        default:
+            cout << "Неверный пункт меню! Попробуйте снова." << endl;
+        }
+
+    } while (choice != 0);
 
     return 0;
 }
